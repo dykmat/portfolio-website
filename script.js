@@ -96,8 +96,13 @@ projectItems.forEach(item => {
         });
     });
 
-    // Click to expand/collapse
+    // Click to expand/collapse (desktop only)
     item.addEventListener('click', () => {
+        // Only enable expansion on desktop (width > 1024px)
+        if (window.innerWidth <= 1024) {
+            return;
+        }
+
         const projectsGrid = document.querySelector('.projects');
         const itemIndex = Array.from(projectItems).indexOf(item);
 

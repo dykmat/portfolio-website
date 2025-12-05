@@ -388,10 +388,33 @@ header {
         min-height: 200px;
         border-right: none;
         border-bottom: 1px solid #1f1f1f;
+        cursor: default;
     }
 
     .project-item.inactive .media-container img {
         opacity: 1;
+    }
+
+    /* Disable all expansion effects on mobile */
+    .projects.expand-col-1,
+    .projects.expand-col-2,
+    .projects.expand-col-3 {
+        grid-template-columns: 1fr !important;
+    }
+
+    .projects.expand-row-1,
+    .projects.expand-row-2 {
+        grid-template-rows: auto !important;
+    }
+
+    .project-item.collapsed .media-container img,
+    .project-item.collapsed-row .media-container img {
+        filter: none !important;
+        opacity: 1 !important;
+    }
+
+    .project-item.collapsed-row .media-container {
+        display: block !important;
     }
 }
 
