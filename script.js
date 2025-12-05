@@ -31,6 +31,7 @@ document.addEventListener('mouseenter', () => {
 
 // Copy email functionality
 const copyEmailBtn = document.getElementById('copyEmailBtn');
+const mobileNotification = document.getElementById('mobileNotification');
 const email = 'contact@dykmat.com';
 
 copyEmailBtn.addEventListener('click', async () => {
@@ -38,14 +39,27 @@ copyEmailBtn.addEventListener('click', async () => {
         // Copy to clipboard
         await navigator.clipboard.writeText(email);
 
-        // Show "Copied!" notification on cursor
-        cursor.classList.remove('hovering');
-        cursor.classList.add('copied');
+        // Check if mobile (screen width <= 768px)
+        const isMobile = window.innerWidth <= 768;
 
-        // Remove the notification after 2 seconds
-        setTimeout(() => {
-            cursor.classList.remove('copied');
-        }, 2000);
+        if (isMobile) {
+            // Show mobile notification
+            mobileNotification.classList.add('show');
+
+            // Hide after 2 seconds
+            setTimeout(() => {
+                mobileNotification.classList.remove('show');
+            }, 2000);
+        } else {
+            // Show "Copied!" notification on cursor (desktop)
+            cursor.classList.remove('hovering');
+            cursor.classList.add('copied');
+
+            // Remove the notification after 2 seconds
+            setTimeout(() => {
+                cursor.classList.remove('copied');
+            }, 2000);
+        }
     } catch (err) {
         console.error('Failed to copy email:', err);
     }
