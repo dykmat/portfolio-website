@@ -69,6 +69,7 @@ header {
         flex-direction: column;
         position: relative;
         align-items: center;
+        justify-content: center;
 
         .profile-container {
 
@@ -155,5 +156,73 @@ header {
         width: 18px;
         height: 18px;
         opacity: 0.9;
+    }
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+    * {
+        cursor: auto !important;
+    }
+
+    .custom-cursor {
+        display: none !important;
+    }
+
+    body {
+        padding: 0 8px;
+    }
+
+    header {
+        padding: 32px 0px;
+    }
+
+    header .profile .profile-container {
+        gap: 12px;
+        padding: 8px 12px;
+        max-width: calc(100% - 16px);
+    }
+
+    header .profile hr {
+        left: -8px;
+        right: -8px;
+        width: 100vw;
+    }
+
+    header .profile .profile-container .info {
+        gap: 8px;
+    }
+
+    header .profile .profile-container .info p {
+        word-break: break-word;
+        margin: 0;
+    }
+
+    header .profile .profile-container .title {
+        margin-right: 0;
+        max-width: 200px;
+    }
+
+    header .profile .profile-container .title p {
+        word-break: break-word;
+        line-height: 1.4;
+        margin: 0;
+    }
+
+
+    header h1 {
+        font-size: 14px;
+        padding: 0 8px;
+        line-height: 1.6;
+    }
+
+    header button {
+        font-size: 13px;
+        padding: 10px 20px;
+    }
+
+    header button img {
+        width: 16px;
+        height: 16px;
     }
 }
