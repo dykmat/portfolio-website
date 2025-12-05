@@ -19,7 +19,7 @@ document.addEventListener('mousemove', (e) => {
 });
 
 // Add hover effect for interactive elements
-const interactiveElements = document.querySelectorAll('a, button, [onclick]');
+const interactiveElements = document.querySelectorAll('a, button, [onclick], .project-item');
 
 interactiveElements.forEach(element => {
     element.addEventListener('mouseenter', () => {
@@ -76,3 +76,69 @@ copyEmailBtn.addEventListener('click', async () => {
     }
 });
 
+// Project item hover interactions
+const projectItems = document.querySelectorAll('.project-item');
+
+projectItems.forEach(item => {
+    item.addEventListener('mouseenter', () => {
+        // Add fade-text class to all items except the hovered one
+        projectItems.forEach(otherItem => {
+            if (otherItem !== item) {
+                otherItem.classList.add('fade-text');
+            }
+        });
+    });
+
+    item.addEventListener('mouseleave', () => {
+        // Remove fade-text class from all items
+        projectItems.forEach(otherItem => {
+            otherItem.classList.remove('fade-text');
+        });
+    });
+
+    // Click to expand/collapse
+    item.addEventListener('click', () => {
+        const projectsGrid = document.querySelector('.projects');
+        const itemIndex = Array.from(projectItems).indexOf(item);
+
+        // Determine column (0-2) and row (0-1)
+        const column = itemIndex % 3; // 0, 1, or 2
+        const row = Math.floor(itemIndex / 3); // 0 or 1
+
+        // Check if this item is already expanded
+        const isExpanded = projectsGrid.classList.contains(`expand-col-${column + 1}`) &&
+            projectsGrid.classList.contains(`expand-row-${row + 1}`);
+
+        if (isExpanded) {
+            // Reset grid to normal
+            projectsGrid.className = 'projects';
+            projectItems.forEach(projectItem => {
+                projectItem.classList.remove('collapsed', 'collapsed-row');
+            });
+        } else {
+            // Expand this item's column and row
+            projectsGrid.className = 'projects';
+            projectsGrid.classList.add(`expand-col-${column + 1}`);
+            projectsGrid.classList.add(`expand-row-${row + 1}`);
+
+            // Mark items based on their position
+            projectItems.forEach((projectItem, index) => {
+                const itemCol = index % 3;
+                const itemRow = Math.floor(index / 3);
+
+                if (itemRow !== row) {
+                    // Items in different row - hide images completely
+                    projectItem.classList.add('collapsed-row');
+                    projectItem.classList.remove('collapsed');
+                } else if (itemCol !== column) {
+                    // Items in same row but different column - grayscale
+                    projectItem.classList.add('collapsed');
+                    projectItem.classList.remove('collapsed-row');
+                } else {
+                    // The expanded item
+                    projectItem.classList.remove('collapsed', 'collapsed-row');
+                }
+            });
+        }
+    });
+});
