@@ -1,3 +1,14 @@
+// Set header height for projects section
+function setHeaderHeight() {
+    const header = document.querySelector('header');
+    const headerHeight = header.offsetHeight;
+    document.documentElement.style.setProperty('--header-height', `${headerHeight}px`);
+}
+
+// Call on load and resize
+setHeaderHeight();
+window.addEventListener('resize', setHeaderHeight);
+
 // Custom cursor functionality
 const cursor = document.querySelector('.custom-cursor');
 
@@ -39,10 +50,10 @@ copyEmailBtn.addEventListener('click', async () => {
         // Copy to clipboard
         await navigator.clipboard.writeText(email);
 
-        // Check if mobile (screen width <= 768px)
-        const isMobile = window.innerWidth <= 768;
+        // Check if touch device (using matchMedia for pointer type)
+        const isTouchDevice = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
 
-        if (isMobile) {
+        if (isTouchDevice) {
             // Show mobile notification
             mobileNotification.classList.add('show');
 
