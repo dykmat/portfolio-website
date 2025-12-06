@@ -11,7 +11,16 @@ function Projects({ viewState, selectedProject, onProjectSelect, isTransitioning
     const [activeGridItem, setActiveGridItem] = useState(null);
     const [enableTransitions, setEnableTransitions] = useState(false);
     const projectsRef = useRef(null);
-    const isDesktop = useMemo(() => window.innerWidth > 1024, []);
+    const [isDesktop, setIsDesktop] = useState(window.innerWidth > 1024);
+
+    useEffect(() => {
+        const handleResize = () => {
+            setIsDesktop(window.innerWidth > 1024);
+        };
+
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     useEffect(() => {
         // Reset active grid item when returning to grid view

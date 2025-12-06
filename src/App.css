@@ -488,6 +488,10 @@ header {
         opacity: 1 !important;
     }
 
+    .project-item .bottom-data p:last-child {
+        display: none;
+    }
+
     /* Mobile-specific transition animations handled by Framer Motion */
     /* Removed conflicting CSS transitions that were hiding the active project */
 
