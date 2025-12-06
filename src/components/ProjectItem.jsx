@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
 
-function ProjectItem({ project, className, onClick, onMouseEnter, onMouseLeave, isPlaying, isCaseStudy, isSelected, isTransitioning, isReturningToHome }) {
+function ProjectItem({ project, className, onClick, onMouseEnter, onMouseLeave, isPlaying, isCaseStudy, isSelected, isTransitioning, isReturningToHome, isMobile }) {
     const videoRef = useRef(null);
     const [isPaused, setIsPaused] = useState(false);
     const [showPoster, setShowPoster] = useState(true);
@@ -60,6 +60,11 @@ function ProjectItem({ project, className, onClick, onMouseEnter, onMouseLeave, 
 
         // In case study mode or playing state
         if (isPlaying && !isPaused) {
+            // On mobile, wait for transition to complete before playing
+            if (isMobile && isCaseStudy && isTransitioning) {
+                return;
+            }
+
             // Allow autoplay on mobile in case study mode
             const playPromise = video.play();
             if (playPromise !== undefined) {
@@ -71,7 +76,7 @@ function ProjectItem({ project, className, onClick, onMouseEnter, onMouseLeave, 
                 });
             }
         }
-    }, [isPlaying, isPaused, isCaseStudy, isTransitioning, isReturningToHome]);
+    }, [isPlaying, isPaused, isCaseStudy, isTransitioning, isReturningToHome, isMobile]);
 
     // Track video play/pause state to show/hide poster
     useEffect(() => {
@@ -104,7 +109,13 @@ function ProjectItem({ project, className, onClick, onMouseEnter, onMouseLeave, 
     const handleContainerClick = (e) => {
         // Trigger video play immediately on user interaction (crucial for mobile)
         const video = videoRef.current;
-        if (video && !isPlaying && !isCaseStudy) {
+        // Check if we should play: only if NOT going to case study (mobile handles play after transition)
+        // Actually, if we are clicking to enter case study, we might NOT want to play immediately on mobile
+        // because we want the "slide in" then "play".
+
+        const shouldPlayNow = !isCaseStudy && !(isMobile);
+
+        if (video && !isPlaying && shouldPlayNow) {
             video.muted = true; // Ensure muted for autoplay success
             video.play().then(() => {
                 setShowPoster(false);
@@ -132,15 +143,24 @@ function ProjectItem({ project, className, onClick, onMouseEnter, onMouseLeave, 
 
     // Always maintain layoutId for smooth transitions
     // The layoutId must be consistent across states for Framer Motion to animate between them
-    // Only disable layout animation when returning to home
-    const shouldUseLayout = !isReturningToHome;
+    // Only disable layout animation when returning to home, OR on mobile (where we slide instead)
+    const shouldUseLayout = !isReturningToHome && !isMobile;
 
     // Critical: Keep layoutId for ALL projects when in grid view (not in case study mode)
     // AND for the selected project when in case study mode
     // This ensures Framer Motion can always find the element to animate from/to
-    const shouldHaveLayoutId = !isReturningToHome && (
+    // Disable on mobile to prevent morphing, so we can slide in
+    const shouldHaveLayoutId = !isMobile && !isReturningToHome && (
         !isCaseStudy || isSelected
     );
+
+    // Initial state for mobile slide-in
+    const getInitial = () => {
+        if (isMobile && isCaseStudy) {
+            return { y: "100%", opacity: 1 };
+        }
+        return false;
+    };
 
     return (
         <motion.div
@@ -150,12 +170,20 @@ function ProjectItem({ project, className, onClick, onMouseEnter, onMouseLeave, 
             onClick={handleContainerClick}
             onMouseEnter={onMouseEnter}
             onMouseLeave={onMouseLeave}
-            initial={false}
-            animate={{ opacity: containerOpacity }}
-            transition={transitionConfig}
+            initial={getInitial()}
+            animate={{
+                opacity: containerOpacity,
+                y: (isMobile && isCaseStudy) ? 0 : 0
+            }}
+            transition={isMobile && isCaseStudy ? {
+                duration: 0.8,
+                ease: [0.43, 0.13, 0.23, 0.96]
+            } : transitionConfig}
             style={{
                 willChange: (isTransitioning && isSelected) ? 'transform' :
-                    (isTransitioning || isReturningToHome) ? 'opacity' : 'auto'
+                    (isTransitioning || isReturningToHome) ? 'opacity' : 'auto',
+                // Ensure it sits on top for slide animation
+                zIndex: (isMobile && isCaseStudy) ? 100 : undefined
             }}
         >
             <motion.div
