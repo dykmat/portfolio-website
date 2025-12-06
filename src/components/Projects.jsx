@@ -12,8 +12,11 @@ function Projects({ viewState, selectedProject, onProjectSelect, isTransitioning
     const isDesktop = useMemo(() => window.innerWidth > 1024, []);
 
     useEffect(() => {
-        setActiveGridItem(null);
-    }, [layoutGroupKey]);
+        // Reset active grid item when returning to grid view
+        if (viewState === 'GRID') {
+            setActiveGridItem(null);
+        }
+    }, [viewState]);
 
     useEffect(() => {
         if (viewState === 'GRID') {
@@ -27,9 +30,12 @@ function Projects({ viewState, selectedProject, onProjectSelect, isTransitioning
                 }, 1100); // Slightly after the 1000ms fade out
                 return () => clearTimeout(timer);
             } else {
-                // Enable transitions immediately when in grid view
-                // This ensures layoutIds are set before any transition starts
-                setEnableTransitions(true);
+                // Add a small delay to ensure DOM has settled before enabling transitions
+                // This prevents jumpy animations when switching between projects
+                const timer = setTimeout(() => {
+                    setEnableTransitions(true);
+                }, 50);
+                return () => clearTimeout(timer);
             }
         } else {
             // In case study mode, disable grid transitions but keep layout animations active

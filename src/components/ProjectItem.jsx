@@ -146,12 +146,12 @@ function ProjectItem({ project, className, onClick, onMouseEnter, onMouseLeave, 
     // The layoutId must be consistent across states for Framer Motion to animate between them
     // Only disable layout animation when returning to home
     const shouldUseLayout = !isReturningToHome;
-    // Keep layoutId for:
-    // 1. Selected project in ALL states (grid, transitioning, case study) - critical for animation continuity
-    // 2. All projects in grid view (even during transition) - so Framer Motion can track any project
-    // This ensures smooth transitions work even after returning home and selecting a new project
+
+    // Critical: Keep layoutId for ALL projects when in grid view (not in case study mode)
+    // AND for the selected project when in case study mode
+    // This ensures Framer Motion can always find the element to animate from/to
     const shouldHaveLayoutId = !isReturningToHome && (
-        isSelected || !isCaseStudy
+        !isCaseStudy || isSelected
     );
 
     return (
@@ -165,9 +165,9 @@ function ProjectItem({ project, className, onClick, onMouseEnter, onMouseLeave, 
             initial={false}
             animate={{ opacity: containerOpacity }}
             transition={transitionConfig}
-            style={{ 
-                willChange: (isTransitioning && isSelected) ? 'transform' : 
-                           (isTransitioning || isReturningToHome) ? 'opacity' : 'auto'
+            style={{
+                willChange: (isTransitioning && isSelected) ? 'transform' :
+                    (isTransitioning || isReturningToHome) ? 'opacity' : 'auto'
             }}
         >
             <motion.div
@@ -215,7 +215,7 @@ function ProjectItem({ project, className, onClick, onMouseEnter, onMouseLeave, 
                     playsInline
                     preload="metadata"
                     className="project-video"
-                    style={{ 
+                    style={{
                         pointerEvents: isCaseStudy ? 'auto' : 'none',
                         willChange: (isTransitioning || isReturningToHome) ? 'transform, opacity' : 'auto',
                         opacity: isReturningToHome ? 0 : 1,

@@ -51,21 +51,20 @@ function App() {
             const project = projectsData.find(p => p.slug === slug);
             if (project && (selectedProject !== project.id || viewState === 'GRID')) {
                 const isSwitchingProjects = viewState === 'CASE_STUDY' && selectedProject !== project.id;
-                
+
                 setSelectedProject(project.id);
                 setIsReturningToHome(false);
-                
+
                 if (viewState === 'GRID') {
                     // Transitioning from grid to case study
-                    // Keep isTransitioning true to allow layout animation to complete
                     setViewState('CASE_STUDY');
-                    // Wait for layout animation to complete (layout animations typically take ~1s)
-                    // Add a bit more time to ensure smooth transition
+                    setIsTransitioning(true);
+                    // Wait for layout animation to complete
                     setTimeout(() => {
                         setIsTransitioning(false);
                     }, 1500);
                 } else if (isSwitchingProjects) {
-                    // Switching between projects - need to reset and transition again
+                    // Switching between projects - trigger transition
                     setIsTransitioning(true);
                     setTimeout(() => {
                         setIsTransitioning(false);
@@ -80,14 +79,12 @@ function App() {
                 // First, fade out all content
                 setIsReturningToHome(true);
                 setIsTransitioning(true);
-                
+
                 // After fade out completes, reset to default state
                 setTimeout(() => {
                     setViewState('GRID');
                     setSelectedProject(null);
                     setIsTransitioning(false);
-                    // DON'T increment layoutGroupKey - this breaks layoutId continuity
-                    // The layoutId needs to persist across LayoutGroups for smooth transitions
                     // Reset returning state after a brief moment to ensure clean render
                     setTimeout(() => {
                         setIsReturningToHome(false);
@@ -107,12 +104,12 @@ function App() {
         // Set selected project first to establish layoutId
         setSelectedProject(id);
         setIsReturningToHome(false);
-        
+
         // Use requestAnimationFrame to ensure layoutId is set before transition starts
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
                 setIsTransitioning(true);
-                
+
                 // Wait for fade out animation before navigating
                 setTimeout(() => {
                     navigate(`/project/${project.slug}`);
