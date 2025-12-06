@@ -102,6 +102,8 @@ function App() {
                 setIsTransitioning(true);
 
                 // After fade out completes, reset to default state
+                // On mobile, wait for slide-down animation (800ms) to complete
+                const returnDuration = isMobile ? 900 : 1000;
                 setTimeout(() => {
                     setViewState('GRID');
                     setSelectedProject(null);
@@ -110,7 +112,7 @@ function App() {
                     setTimeout(() => {
                         setIsReturningToHome(false);
                     }, 100);
-                }, 1000);
+                }, returnDuration);
             }
         }
     }, [location.pathname, viewState, selectedProject, isMobile]);

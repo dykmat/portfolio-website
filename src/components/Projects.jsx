@@ -153,6 +153,7 @@ function Projects({ viewState, selectedProject, onProjectSelect, isTransitioning
                         isTransitioning={isTransitioning}
                         isReturningToHome={isReturningToHome}
                         isMobile={isMobile}
+                        itemIndex={index}
                     />
                 ))}
                 {selectedProjectData && (
@@ -164,7 +165,7 @@ function Projects({ viewState, selectedProject, onProjectSelect, isTransitioning
                             animate={{ opacity: (isTransitioning || isReturningToHome) ? 0 : 1 }}
                             exit={{ opacity: 0 }}
                             transition={{
-                                duration: 1,
+                                duration: isMobile ? 0.6 : 1,
                                 ease: [0.43, 0.13, 0.23, 0.96],
                                 delay: (isTransitioning || isReturningToHome) ? 0 : 0.4
                             }}
@@ -179,7 +180,7 @@ function Projects({ viewState, selectedProject, onProjectSelect, isTransitioning
                             animate={{ opacity: (isTransitioning || isReturningToHome) ? 0 : 1 }}
                             exit={{ opacity: 0 }}
                             transition={{
-                                duration: 1,
+                                duration: isMobile ? 0.6 : 1,
                                 ease: [0.43, 0.13, 0.23, 0.96],
                                 delay: (isTransitioning || isReturningToHome) ? 0 : 0.4
                             }}

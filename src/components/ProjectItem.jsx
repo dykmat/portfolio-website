@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
 
-function ProjectItem({ project, className, onClick, onMouseEnter, onMouseLeave, isPlaying, isCaseStudy, isSelected, isTransitioning, isReturningToHome, isMobile }) {
+function ProjectItem({ project, className, onClick, onMouseEnter, onMouseLeave, isPlaying, isCaseStudy, isSelected, isTransitioning, isReturningToHome, isMobile, itemIndex = 0 }) {
     const videoRef = useRef(null);
     const [isPaused, setIsPaused] = useState(false);
     const [showPoster, setShowPoster] = useState(true);
@@ -31,15 +31,22 @@ function ProjectItem({ project, className, onClick, onMouseEnter, onMouseLeave, 
 
     // Memoize transition config
     // Keep opacity transitions smooth, layout animation will be handled by Framer Motion
-    const transitionConfig = useMemo(() => ({
-        duration: isReturningToHome ? (isCaseStudy ? 1 : 0) : 1,
-        ease: [0.43, 0.13, 0.23, 0.96],
-        // Ensure layout animations are smooth
-        layout: {
-            duration: 1,
-            ease: [0.43, 0.13, 0.23, 0.96]
-        }
-    }), [isReturningToHome, isCaseStudy]);
+    const transitionConfig = useMemo(() => {
+        // When returning to home on mobile, add staggered delay for grid items
+        const isReturningToGrid = isReturningToHome && !isCaseStudy;
+        const staggerDelay = (isMobile && isReturningToGrid) ? itemIndex * 0.05 : 0;
+
+        return {
+            duration: isReturningToHome ? (isCaseStudy ? 1 : 0.6) : 1,
+            ease: [0.43, 0.13, 0.23, 0.96],
+            delay: staggerDelay,
+            // Ensure layout animations are smooth
+            layout: {
+                duration: 1,
+                ease: [0.43, 0.13, 0.23, 0.96]
+            }
+        };
+    }, [isReturningToHome, isCaseStudy, isMobile, itemIndex]);
 
     // Optimize video handling - only play when visible and not transitioning
     useEffect(() => {
@@ -161,10 +168,24 @@ function ProjectItem({ project, className, onClick, onMouseEnter, onMouseLeave, 
 
     // Initial state for mobile slide-in
     const getInitial = () => {
-        if (isMobile && isCaseStudy) {
+        if (isMobile && isCaseStudy && !isReturningToHome) {
             return { y: "100%", opacity: 1 };
         }
-        return { opacity: 0 };
+        return { opacity: 1 };
+    };
+
+    // Animate state for mobile - slide down when returning, slide up when entering
+    const getAnimateState = () => {
+        if (isMobile && isCaseStudy) {
+            if (isReturningToHome) {
+                // Slide down and fade out when returning to home
+                return { y: "100%", opacity: 0 };
+            }
+            // Slide up and stay visible when entering case study
+            return { y: 0, opacity: 1 };
+        }
+        // Normal opacity-based transitions for non-mobile
+        return { opacity: containerOpacity, y: 0 };
     };
 
     return (
@@ -176,17 +197,14 @@ function ProjectItem({ project, className, onClick, onMouseEnter, onMouseLeave, 
             onMouseEnter={onMouseEnter}
             onMouseLeave={onMouseLeave}
             initial={getInitial()}
-            animate={{
-                opacity: containerOpacity,
-                y: (isMobile && isCaseStudy) ? 0 : 0
-            }}
+            animate={getAnimateState()}
             transition={isMobile && isCaseStudy ? {
                 duration: 0.8,
                 ease: [0.43, 0.13, 0.23, 0.96]
             } : transitionConfig}
             style={{
                 willChange: (isTransitioning && isSelected) ? 'transform' :
-                    (isTransitioning || isReturningToHome) ? 'opacity' : 'auto',
+                    (isTransitioning || isReturningToHome) ? 'opacity, transform' : 'auto',
                 // Ensure it sits on top for slide animation
                 zIndex: (isMobile && isCaseStudy) ? 100 : undefined
             }}
