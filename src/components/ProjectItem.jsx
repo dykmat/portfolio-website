@@ -159,7 +159,7 @@ function ProjectItem({ project, className, onClick, onMouseEnter, onMouseLeave, 
         if (isMobile && isCaseStudy) {
             return { y: "100%", opacity: 1 };
         }
-        return false;
+        return { opacity: 0 };
     };
 
     return (
@@ -232,7 +232,7 @@ function ProjectItem({ project, className, onClick, onMouseEnter, onMouseLeave, 
                     className="project-video"
                     style={{
                         pointerEvents: isCaseStudy ? 'auto' : 'none',
-                        opacity: isReturningToHome ? 0 : 1,
+                        opacity: 1,
                         transition: 'none',
                         position: 'relative',
                         zIndex: 1

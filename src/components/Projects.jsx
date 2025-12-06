@@ -159,7 +159,11 @@ function Projects({ viewState, selectedProject, onProjectSelect, isTransitioning
                             initial={{ opacity: 0 }}
                             animate={{ opacity: (isTransitioning || isReturningToHome) ? 0 : 1 }}
                             exit={{ opacity: 0 }}
-                            transition={{ duration: 1, ease: [0.43, 0.13, 0.23, 0.96] }}
+                            transition={{
+                                duration: 1,
+                                ease: [0.43, 0.13, 0.23, 0.96],
+                                delay: (isTransitioning || isReturningToHome) ? 0 : 0.4
+                            }}
                         >
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -170,7 +174,11 @@ function Projects({ viewState, selectedProject, onProjectSelect, isTransitioning
                             initial={{ opacity: 0 }}
                             animate={{ opacity: (isTransitioning || isReturningToHome) ? 0 : 1 }}
                             exit={{ opacity: 0 }}
-                            transition={{ duration: 1, ease: [0.43, 0.13, 0.23, 0.96] }}
+                            transition={{
+                                duration: 1,
+                                ease: [0.43, 0.13, 0.23, 0.96],
+                                delay: (isTransitioning || isReturningToHome) ? 0 : 0.4
+                            }}
                             style={{
                                 willChange: (isTransitioning || isReturningToHome) ? 'opacity' : 'auto'
                             }}

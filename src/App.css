@@ -488,7 +488,7 @@ header {
         opacity: 1 !important;
     }
 
-    .project-item .bottom-data p:last-child {
+    .project-item .bottom-data>p:last-child {
         display: none;
     }
 

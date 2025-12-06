@@ -8,16 +8,22 @@ import { projectsData } from './data/projects';
 import './App.css';
 
 function App() {
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    // Determine initial state based on URL
+    const initialMatch = matchPath('/projects/:slug', location.pathname);
+    const initialProject = initialMatch
+        ? projectsData.find(p => p.slug === initialMatch.params.slug)
+        : null;
+
     const [headerHeight, setHeaderHeight] = useState(300);
-    const [viewState, setViewState] = useState('GRID');
-    const [selectedProject, setSelectedProject] = useState(null);
+    const [viewState, setViewState] = useState(initialProject ? 'CASE_STUDY' : 'GRID');
+    const [selectedProject, setSelectedProject] = useState(initialProject ? initialProject.id : null);
     const [isTransitioning, setIsTransitioning] = useState(false);
     const [isReturningToHome, setIsReturningToHome] = useState(false);
     const [layoutGroupKey, setLayoutGroupKey] = useState(0);
     const [isMobile, setIsMobile] = useState(false);
-
-    const navigate = useNavigate();
-    const location = useLocation();
 
     // Mobile detection
     useEffect(() => {
@@ -77,13 +83,13 @@ function App() {
                     // Wait for layout animation to complete
                     setTimeout(() => {
                         setIsTransitioning(false);
-                    }, isMobile ? 1000 : 1500); // Shorter timeout for mobile slide transition
+                    }, isMobile ? 1000 : 1100); // Shorter timeout for mobile slide transition
                 } else if (isSwitchingProjects) {
                     // Switching between projects - trigger transition
                     setIsTransitioning(true);
                     setTimeout(() => {
                         setIsTransitioning(false);
-                    }, 1500);
+                    }, 1100);
                 } else {
                     // Already on this project, just ensure transition is complete
                     setIsTransitioning(false);
