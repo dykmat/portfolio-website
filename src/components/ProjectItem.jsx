@@ -46,8 +46,13 @@ function ProjectItem({ project, className, onClick, onMouseEnter, onMouseLeave, 
         const video = videoRef.current;
         if (!video) return;
 
-        // When not returning to home and in grid view, ensure video shows poster when not playing
-        if (!isCaseStudy && !isPlaying && !isReturningToHome) {
+        // Don't modify video state when returning to home - just let it fade out
+        if (isReturningToHome) {
+            return;
+        }
+
+        // When in grid view, ensure video shows poster when not playing
+        if (!isCaseStudy && !isPlaying) {
             video.pause();
             video.currentTime = 0;
             // Ensure poster is visible by forcing a load
