@@ -1,16 +1,27 @@
 import { useState, useEffect, useRef } from 'react';
+import { LayoutGroup, AnimatePresence, motion } from 'framer-motion';
 import ProjectItem from './ProjectItem';
 import CaseStudy from './CaseStudy';
 import { projectsData } from '../data/projects';
 
-function Projects({ viewState, selectedProject, onProjectSelect }) {
+function Projects({ viewState, selectedProject, onProjectSelect, isTransitioning, layoutGroupKey }) {
     const [hoveredItem, setHoveredItem] = useState(null);
     const [activeGridItem, setActiveGridItem] = useState(null);
-    const [transitionStyle, setTransitionStyle] = useState({});
     const projectsRef = useRef(null);
 
-    // We don't need local activeItem state anymore if we use selectedProject from props
-    // But for the "Expand" effect during TRANSITIONING, we can use selectedProject.
+    useEffect(() => {
+        setActiveGridItem(null);
+    }, [layoutGroupKey]);
+
+    const [enableTransitions, setEnableTransitions] = useState(false);
+
+    useEffect(() => {
+        if (viewState === 'GRID') {
+            setEnableTransitions(false);
+            const timer = setTimeout(() => setEnableTransitions(true), 100);
+            return () => clearTimeout(timer);
+        }
+    }, [viewState]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -23,23 +34,6 @@ function Projects({ viewState, selectedProject, onProjectSelect }) {
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [viewState]);
-
-    useEffect(() => {
-        if (viewState === 'EXPANDING') {
-            setTransitionStyle(prev => ({
-                ...prev,
-                top: 0,
-                left: 0,
-                width: '100vw',
-                height: '50vh',
-                padding: 0
-            }));
-        } else if (viewState === 'CASE_STUDY') {
-            // Reset style for static layout, or keep it if needed?
-            // In CASE_STUDY, CSS handles the layout. We should clear inline styles to let CSS take over.
-            setTransitionStyle({});
-        }
     }, [viewState]);
 
     const handleItemHover = (index) => {
@@ -61,18 +55,6 @@ function Projects({ viewState, selectedProject, onProjectSelect }) {
         }
 
         if (activeGridItem === index) {
-            // Capture rect for transition
-            const rect = e.currentTarget.getBoundingClientRect();
-            setTransitionStyle({
-                position: 'fixed',
-                top: rect.top,
-                left: rect.left,
-                width: rect.width,
-                height: rect.height,
-                zIndex: 1000,
-                transition: 'all 1s ease',
-                margin: 0
-            });
             onProjectSelect(projectId);
         } else {
             setActiveGridItem(index);
@@ -90,12 +72,6 @@ function Projects({ viewState, selectedProject, onProjectSelect }) {
             if (activeGridItem === index) {
                 classes.push('active');
             }
-        } else if (viewState === 'TRANSITIONING' || viewState === 'EXPANDING') {
-            if (selectedProject === project.id) {
-                classes.push('active');
-            } else {
-                classes.push('fading-out');
-            }
         } else if (viewState === 'CASE_STUDY') {
             if (selectedProject === project.id) {
                 classes.push('case-study-active');
@@ -108,20 +84,9 @@ function Projects({ viewState, selectedProject, onProjectSelect }) {
     };
 
     const getGridStyles = () => {
-        // If Case Study, we override grid styles in CSS or here
         if (viewState === 'CASE_STUDY') return {};
 
-        // Use activeGridItem for grid layout in GRID mode
-        // If transitioning, we might want to keep the layout of the selected project
-        // But selectedProject is an ID, activeGridItem is an index.
-        // Let's rely on activeGridItem if in GRID mode.
-        // If transitioning, we should probably keep the same layout.
-
         let targetIndex = activeGridItem;
-
-        if ((viewState === 'TRANSITIONING' || viewState === 'EXPANDING') && selectedProject !== null) {
-            targetIndex = projectsData.findIndex(p => p.id === selectedProject);
-        }
 
         if (targetIndex === null) return {};
 
@@ -142,28 +107,38 @@ function Projects({ viewState, selectedProject, onProjectSelect }) {
     };
 
     return (
-        <div
-            className={`projects ${viewState === 'CASE_STUDY' ? 'case-study-mode' : ''} ${viewState === 'TRANSITIONING' || viewState === 'EXPANDING' ? 'transitioning-mode' : ''}`}
-            style={getGridStyles()}
-            ref={projectsRef}
-        >
-            {projectsData.map((project, index) => (
-                <ProjectItem
-                    key={project.id}
-                    project={project}
-                    className={getItemClasses(index, project)}
-                    onMouseEnter={() => handleItemHover(index)}
-                    onMouseLeave={handleItemLeave}
-                    onClick={(e) => handleItemClick(index, project.id, e)}
-                    isPlaying={hoveredItem === index || activeGridItem === index || selectedProject === project.id}
-                    isCaseStudy={viewState === 'CASE_STUDY'}
-                    style={selectedProject === project.id ? transitionStyle : {}}
-                />
-            ))}
-            {viewState === 'CASE_STUDY' && (
-                <CaseStudy project={projectsData.find(p => p.id === selectedProject)} />
-            )}
-        </div>
+        <LayoutGroup id={`projects-${layoutGroupKey}`}>
+            <div
+                className={`projects ${viewState === 'CASE_STUDY' ? 'case-study-mode' : ''} ${isTransitioning ? 'transitioning-mode' : ''} ${enableTransitions ? 'enable-transitions' : ''}`}
+                style={getGridStyles()}
+                ref={projectsRef}
+            >
+                {projectsData.map((project, index) => (
+                    <ProjectItem
+                        key={`${project.id}-${layoutGroupKey}`}
+                        project={project}
+                        className={getItemClasses(index, project)}
+                        onMouseEnter={() => handleItemHover(index)}
+                        onMouseLeave={handleItemLeave}
+                        onClick={(e) => handleItemClick(index, project.id, e)}
+                        isPlaying={hoveredItem === index || activeGridItem === index || selectedProject === project.id}
+                        isCaseStudy={viewState === 'CASE_STUDY'}
+                        isSelected={selectedProject === project.id}
+                        isTransitioning={isTransitioning}
+                    />
+                ))}
+                {viewState === 'CASE_STUDY' && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: isTransitioning ? 0 : 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 1 }}
+                    >
+                        <CaseStudy project={projectsData.find(p => p.id === selectedProject)} />
+                    </motion.div>
+                )}
+            </div>
+        </LayoutGroup>
     );
 }
 

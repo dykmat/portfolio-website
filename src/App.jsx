@@ -9,8 +9,10 @@ import './App.css';
 
 function App() {
     const [headerHeight, setHeaderHeight] = useState(300);
-    const [viewState, setViewState] = useState('GRID'); // 'GRID', 'TRANSITIONING', 'EXPANDING', 'CASE_STUDY'
+    const [viewState, setViewState] = useState('GRID'); // 'GRID', 'CASE_STUDY'
     const [selectedProject, setSelectedProject] = useState(null);
+    const [isTransitioning, setIsTransitioning] = useState(false);
+    const [layoutGroupKey, setLayoutGroupKey] = useState(0);
 
     const navigate = useNavigate();
     const location = useLocation();
@@ -44,17 +46,17 @@ function App() {
             const project = projectsData.find(p => p.slug === slug);
             if (project) {
                 setSelectedProject(project.id);
-                // If we are already in CASE_STUDY or EXPANDING, don't reset to CASE_STUDY immediately to avoid breaking animation
-                // But if we are loading directly or navigating back/forward, we should set it.
-                // We can check if viewState is GRID to decide if we need to jump.
                 if (viewState === 'GRID') {
                     setViewState('CASE_STUDY');
+                    setIsTransitioning(false);
                 }
             }
         } else if (location.pathname === '/') {
             if (viewState !== 'GRID') {
                 setViewState('GRID');
                 setSelectedProject(null);
+                setIsTransitioning(false);
+                setLayoutGroupKey(prev => prev + 1);
             }
         }
     }, [location.pathname]);
@@ -64,21 +66,12 @@ function App() {
         if (!project) return;
 
         setSelectedProject(id);
+        setIsTransitioning(true);
 
-        if (window.innerWidth <= 1024) {
-            setViewState('CASE_STUDY');
-            navigate(`/project/${project.slug}`);
-            return;
-        }
-
-        setViewState('TRANSITIONING');
+        // Wait for fade out animation before navigating
         setTimeout(() => {
-            setViewState('EXPANDING');
+            navigate(`/project/${project.slug}`);
         }, 1000);
-        setTimeout(() => {
-            setViewState('CASE_STUDY');
-            navigate(`/project/${project.slug}`);
-        }, 2200);
     };
 
     const handleBackToGrid = () => {
@@ -89,11 +82,13 @@ function App() {
         <>
             <CustomCursor />
             <MobileNotification />
-            <Header isHidden={viewState !== 'GRID'} />
+            <Header isHidden={viewState !== 'GRID' || isTransitioning} />
             <Projects
                 viewState={viewState}
                 selectedProject={selectedProject}
                 onProjectSelect={handleProjectSelect}
+                isTransitioning={isTransitioning}
+                layoutGroupKey={layoutGroupKey}
             />
         </>
     );

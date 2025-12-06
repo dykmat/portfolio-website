@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
+import { motion } from 'framer-motion';
 
-function ProjectItem({ project, className, onClick, onMouseEnter, onMouseLeave, isPlaying, isCaseStudy, style }) {
+function ProjectItem({ project, className, onClick, onMouseEnter, onMouseLeave, isPlaying, isCaseStudy, style, isSelected, isTransitioning }) {
     const videoRef = useRef(null);
     const [isPaused, setIsPaused] = useState(false);
 
@@ -40,26 +41,53 @@ function ProjectItem({ project, className, onClick, onMouseEnter, onMouseLeave, 
         }
     };
 
+    const containerOpacity = () => {
+        if (isTransitioning) {
+            if (isCaseStudy) return 0; // Leaving Case Study
+            if (!isSelected) return 0; // Leaving Grid, non-selected
+        }
+        return 1;
+    };
+
+    const textOpacity = () => {
+        if (isTransitioning && isSelected && !isCaseStudy) return 0;
+        return 1;
+    };
+
     return (
-        <div
+        <motion.div
+            layoutId={isCaseStudy && isTransitioning ? undefined : `project-${project.id}`}
             className={className}
             onClick={onClick}
             onMouseEnter={onMouseEnter}
             onMouseLeave={onMouseLeave}
             style={style}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: containerOpacity() }}
+            transition={{ duration: 1, ease: [0.43, 0.13, 0.23, 0.96] }}
         >
-            <div className="top-data">
+            <motion.div
+                className="top-data"
+                animate={{ opacity: textOpacity() }}
+                transition={{ duration: 1 }}
+            >
                 <p>{project.title}</p>
                 <p>{project.year}</p>
-            </div>
-            <p className="project-info">{project.description}</p>
+            </motion.div>
+            <motion.p
+                className="project-info"
+                animate={{ opacity: textOpacity() }}
+                transition={{ duration: 1 }}
+            >
+                {project.description}
+            </motion.p>
             <div className="media-container" onClick={togglePlay}>
                 <video
                     ref={videoRef}
                     src={project.video}
                     poster={project.image}
                     loop
-                    muted={!isCaseStudy} // Unmute in case study? User didn't specify, but usually yes. Let's keep muted for now or unmute if requested.
+                    muted={!isCaseStudy}
                     playsInline
                     className="project-video"
                     style={{ pointerEvents: isCaseStudy ? 'auto' : 'none' }}
@@ -70,14 +98,18 @@ function ProjectItem({ project, className, onClick, onMouseEnter, onMouseLeave, 
                     </div>
                 )}
             </div>
-            <div className="bottom-data">
+            <motion.div
+                className="bottom-data"
+                animate={{ opacity: textOpacity() }}
+                transition={{ duration: 1 }}
+            >
                 <div className="project-scope">
                     <p>Scope</p>
                     <p>{project.scope}</p>
                 </div>
                 <p>Details</p>
-            </div>
-        </div>
+            </motion.div>
+        </motion.div>
     );
 }
 
