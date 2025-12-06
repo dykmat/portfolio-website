@@ -44,7 +44,7 @@ function App() {
 
     // Sync URL with State
     useEffect(() => {
-        const match = matchPath('/project/:slug', location.pathname);
+        const match = matchPath('/projects/:slug', location.pathname);
 
         if (match) {
             const slug = match.params.slug;
@@ -115,7 +115,7 @@ function App() {
 
                 // Wait for fade out animation before navigating
                 setTimeout(() => {
-                    navigate(`/project/${project.slug}`);
+                    navigate(`/projects/${project.slug}`);
                 }, 600);
             });
         });

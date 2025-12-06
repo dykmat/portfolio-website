@@ -189,7 +189,7 @@ function ProjectItem({ project, className, onClick, onMouseEnter, onMouseLeave, 
                         width: '100%',
                         height: '100%',
                         objectFit: 'cover',
-                        opacity: showPoster ? 1 : 0,
+                        opacity: (showPoster || (isTransitioning && isSelected)) ? 1 : 0,
                         transition: 'opacity 0.5s ease',
                         pointerEvents: 'none',
                         zIndex: 2

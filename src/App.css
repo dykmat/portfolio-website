@@ -741,10 +741,10 @@ body:has(.projects.case-study-mode) header {
 /* Mobile-specific case study content styles */
 @media (max-width: 1024px) {
     .case-study-content {
-        animation: fadeInSlideUp 0.6s cubic-bezier(0.43, 0.13, 0.23, 0.96) forwards;
-        animation-delay: 1s;
-        /* Start after layout transition completes */
-        opacity: 0;
+        /* animation: fadeInSlideUp 0.6s cubic-bezier(0.43, 0.13, 0.23, 0.96) forwards; */
+        transition: opacity 0.6s cubic-bezier(0.43, 0.13, 0.23, 0.96);
+        /* Opacity controlled by parent motion.div */
+        opacity: 1;
     }
 
     .case-study-details {
