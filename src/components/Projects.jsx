@@ -143,7 +143,11 @@ function Projects({ viewState, selectedProject, onProjectSelect, isTransitioning
                         onMouseEnter={() => handleItemHover(index)}
                         onMouseLeave={handleItemLeave}
                         onClick={() => handleItemClick(index, project.id)}
-                        isPlaying={(hoveredItem === index || activeGridItem === index || selectedProject === project.id) && !isReturningToHome}
+                        isPlaying={(
+                            (hoveredItem === index) ||
+                            (activeGridItem === index && hoveredItem === null) ||
+                            (selectedProject === project.id)
+                        ) && !isReturningToHome}
                         isCaseStudy={viewState === 'CASE_STUDY'}
                         isSelected={selectedProject === project.id}
                         isTransitioning={isTransitioning}
