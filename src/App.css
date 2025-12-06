@@ -242,7 +242,9 @@ header {
 }
 
 .project-item:hover .media-container img,
-.project-item:hover .media-container video {
+.project-item:hover .media-container video,
+.project-item.active .media-container img,
+.project-item.active .media-container video {
     opacity: 1;
 }
 
@@ -359,8 +361,8 @@ header {
     }
 
     .projects {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto;
+        grid-template-columns: 1fr !important;
+        grid-template-rows: auto !important;
         height: auto;
         min-height: auto;
         border-left: none;

@@ -41,6 +41,7 @@ function ProjectItem({ project, className, onClick, onMouseEnter, onMouseLeave, 
                 <video
                     ref={videoRef}
                     src={project.video}
+                    poster={project.image}
                     loop
                     muted
                     playsInline
