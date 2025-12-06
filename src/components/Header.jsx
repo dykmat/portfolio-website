@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-function Header() {
+function Header({ isHidden }) {
     const [copiedEmail, setCopiedEmail] = useState(false);
 
     const handleCopyEmail = async () => {
@@ -35,7 +35,7 @@ function Header() {
     };
 
     return (
-        <header>
+        <header className={isHidden ? 'fade-out' : ''}>
             <div className="profile">
                 <div className="profile-container">
                     <div className="info">
