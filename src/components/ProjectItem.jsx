@@ -46,21 +46,8 @@ function ProjectItem({ project, className, onClick, onMouseEnter, onMouseLeave, 
         const video = videoRef.current;
         if (!video) return;
 
-        // When returning home, always reset video to show poster image
-        if (isReturningToHome) {
-            video.pause();
-            video.currentTime = 0;
-            // Force video to show poster by resetting load state
-            video.load();
-            setIsPaused(false);
-            setShowPoster(true);
-            return;
-        }
-
-
-
         // When not returning to home and in grid view, ensure video shows poster when not playing
-        if (!isCaseStudy && !isPlaying) {
+        if (!isCaseStudy && !isPlaying && !isReturningToHome) {
             video.pause();
             video.currentTime = 0;
             // Ensure poster is visible by forcing a load
@@ -114,6 +101,19 @@ function ProjectItem({ project, className, onClick, onMouseEnter, onMouseLeave, 
         };
     }, [isCaseStudy]);
 
+    const handleContainerClick = (e) => {
+        // Trigger video play immediately on user interaction (crucial for mobile)
+        const video = videoRef.current;
+        if (video && !isPlaying && !isCaseStudy) {
+            video.muted = true; // Ensure muted for autoplay success
+            video.play().then(() => {
+                setShowPoster(false);
+            }).catch(() => { });
+        }
+
+        if (onClick) onClick(e);
+    };
+
     const togglePlay = useCallback((e) => {
         if (!isCaseStudy) return;
         e.stopPropagation();
@@ -147,7 +147,7 @@ function ProjectItem({ project, className, onClick, onMouseEnter, onMouseLeave, 
             layout={shouldUseLayout}
             layoutId={shouldHaveLayoutId ? `project-${project.id}` : undefined}
             className={className}
-            onClick={onClick}
+            onClick={handleContainerClick}
             onMouseEnter={onMouseEnter}
             onMouseLeave={onMouseLeave}
             initial={false}
@@ -176,8 +176,6 @@ function ProjectItem({ project, className, onClick, onMouseEnter, onMouseLeave, 
             <div className="media-container" onClick={togglePlay}>
                 {/* Show poster image overlay when video is not playing to ensure it's visible */}
                 {/* Fade out poster at start of transition for clean video animation */}
-                {/* Show poster image overlay when video is not playing to ensure it's visible */}
-                {/* Fade out poster at start of transition for clean video animation */}
                 <img
                     src={project.image}
                     alt={project.title}
@@ -189,7 +187,7 @@ function ProjectItem({ project, className, onClick, onMouseEnter, onMouseLeave, 
                         width: '100%',
                         height: '100%',
                         objectFit: 'cover',
-                        opacity: (showPoster || (isTransitioning && isSelected)) ? 1 : 0,
+                        opacity: showPoster ? 1 : 0,
                         transition: 'opacity 0.5s ease',
                         pointerEvents: 'none',
                         zIndex: 2
