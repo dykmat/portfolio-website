@@ -298,6 +298,10 @@ header {
 
     header {
         padding: 42px 16px;
+        height: 80vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
     }
 
     header .profile .profile-container {
@@ -361,6 +365,7 @@ header {
         min-height: auto;
         border-left: none;
         border-top: none;
+        gap: 20px;
     }
 
     .project-item {
