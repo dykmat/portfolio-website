@@ -328,6 +328,12 @@ header {
     will-change: opacity;
 }
 
+.projects.transitioning-mode .project-item:not(.active) {
+    opacity: 0;
+    transition: opacity 1s cubic-bezier(0.43, 0.13, 0.23, 0.96);
+    pointer-events: none;
+}
+
 .project-item.inactive .media-container img,
 .project-item.inactive .media-container video {
     opacity: 0.7;
@@ -396,6 +402,12 @@ header {
         display: flex;
         flex-direction: column;
         justify-content: space-between;
+        transition: opacity 0.6s cubic-bezier(0.43, 0.13, 0.23, 0.96);
+    }
+
+    header.fade-out {
+        opacity: 0;
+        transition: opacity 0.6s cubic-bezier(0.43, 0.13, 0.23, 0.96);
     }
 
     header .profile .profile-container {
@@ -476,6 +488,9 @@ header {
         opacity: 1 !important;
     }
 
+    /* Mobile-specific transition animations handled by Framer Motion */
+    /* Removed conflicting CSS transitions that were hiding the active project */
+
 }
 
 /* Hide custom cursor on touch devices only */
@@ -530,6 +545,20 @@ body:has(.projects.case-study-mode) header {
     border: none;
     cursor: default;
     opacity: 1;
+    padding: 0;
+}
+
+/* Mobile-specific case study video sizing */
+@media (max-width: 1024px) {
+    .projects.case-study-mode .project-item.case-study-active {
+        height: 40vh;
+        max-height: 40vh;
+    }
+
+    .projects.case-study-mode .project-item.case-study-active .media-container {
+        overflow: hidden;
+        position: relative;
+    }
 }
 
 
@@ -624,7 +653,7 @@ body:has(.projects.case-study-mode) header {
     border-radius: 24px;
     cursor: pointer;
     transition: all 0.3s ease;
-    z-index: 1000;
+    z-index: 10001;
     box-shadow: 0 4px 12px rgba(31, 31, 31, 0.1);
 }
 
@@ -647,14 +676,104 @@ body:has(.projects.case-study-mode) header {
 
 @media (max-width: 1024px) {
     .back-button {
+        position: fixed;
         top: 16px;
         left: 16px;
         padding: 10px 16px;
         font-size: 13px;
+        background-color: rgba(255, 255, 255, 0.95);
     }
 
     .back-button svg {
         width: 18px;
         height: 18px;
+    }
+}
+
+/* Case Study Content Styles */
+.case-study-content {
+    width: 100%;
+    opacity: 1;
+    transition: opacity 1s cubic-bezier(0.43, 0.13, 0.23, 0.96);
+}
+
+.case-study-details {
+    padding: 48px 64px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.case-study-details h2 {
+    font-size: 32px;
+    font-weight: 600;
+    margin: 0 0 16px 0;
+    color: #1f1f1f;
+}
+
+.case-study-details p {
+    font-size: 16px;
+    line-height: 1.6;
+    color: #3f3f3f;
+    margin: 0 0 24px 0;
+}
+
+.case-study-details .meta {
+    display: flex;
+    gap: 32px;
+    margin-bottom: 32px;
+    padding: 16px 0;
+    border-top: 1px solid #d0d0d0;
+    border-bottom: 1px solid #d0d0d0;
+}
+
+.case-study-details .meta p {
+    margin: 0;
+}
+
+.case-study-details .meta strong {
+    font-weight: 600;
+}
+
+.content-placeholder {
+    margin-top: 32px;
+}
+
+/* Mobile-specific case study content styles */
+@media (max-width: 1024px) {
+    .case-study-content {
+        animation: fadeInSlideUp 0.6s cubic-bezier(0.43, 0.13, 0.23, 0.96) forwards;
+        animation-delay: 1s;
+        /* Start after layout transition completes */
+        opacity: 0;
+    }
+
+    .case-study-details {
+        padding: 32px 24px;
+    }
+
+    .case-study-details h2 {
+        font-size: 24px;
+    }
+
+    .case-study-details p {
+        font-size: 14px;
+    }
+
+    .case-study-details .meta {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    /* Fade in and slide up animation */
+    @keyframes fadeInSlideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 }

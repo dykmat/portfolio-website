@@ -57,6 +57,8 @@ function ProjectItem({ project, className, onClick, onMouseEnter, onMouseLeave, 
             return;
         }
 
+
+
         // When not returning to home and in grid view, ensure video shows poster when not playing
         if (!isCaseStudy && !isPlaying) {
             video.pause();
@@ -69,31 +71,17 @@ function ProjectItem({ project, className, onClick, onMouseEnter, onMouseLeave, 
             return;
         }
 
-        // Pause video if transitioning
-        if (isTransitioning || !isPlaying) {
-            if (!video.paused) {
-                video.pause();
-            }
-            if (!isPlaying) {
-                video.currentTime = 0;
-                setShowPoster(true);
-            }
-            return;
-        }
-
+        // In case study mode or playing state
         if (isPlaying && !isPaused) {
-            if (window.innerWidth <= 1024 && isCaseStudy) {
-                setIsPaused(true);
-            } else {
-                const playPromise = video.play();
-                if (playPromise !== undefined) {
-                    playPromise.then(() => {
-                        // Hide poster when video starts playing
-                        setShowPoster(false);
-                    }).catch(() => {
-                        // Autoplay prevented - silent fail
-                    });
-                }
+            // Allow autoplay on mobile in case study mode
+            const playPromise = video.play();
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    // Hide poster when video starts playing
+                    setShowPoster(false);
+                }).catch(() => {
+                    // Autoplay prevented - silent fail
+                });
             }
         }
     }, [isPlaying, isPaused, isCaseStudy, isTransitioning, isReturningToHome]);
@@ -187,25 +175,26 @@ function ProjectItem({ project, className, onClick, onMouseEnter, onMouseLeave, 
             </motion.p>
             <div className="media-container" onClick={togglePlay}>
                 {/* Show poster image overlay when video is not playing to ensure it's visible */}
-                {showPoster && !isCaseStudy && (
-                    <img
-                        src={project.image}
-                        alt={project.title}
-                        className="project-poster"
-                        style={{
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'cover',
-                            opacity: 1,
-                            transition: 'opacity 0.3s ease',
-                            pointerEvents: 'none',
-                            zIndex: 2
-                        }}
-                    />
-                )}
+                {/* Fade out poster at start of transition for clean video animation */}
+                {/* Show poster image overlay when video is not playing to ensure it's visible */}
+                {/* Fade out poster at start of transition for clean video animation */}
+                <img
+                    src={project.image}
+                    alt={project.title}
+                    className="project-poster"
+                    style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        opacity: showPoster ? 1 : 0,
+                        transition: 'opacity 0.5s ease',
+                        pointerEvents: 'none',
+                        zIndex: 2
+                    }}
+                />
                 <video
                     ref={videoRef}
                     src={project.video}
@@ -219,7 +208,7 @@ function ProjectItem({ project, className, onClick, onMouseEnter, onMouseLeave, 
                         pointerEvents: isCaseStudy ? 'auto' : 'none',
                         willChange: (isTransitioning || isReturningToHome) ? 'transform, opacity' : 'auto',
                         opacity: isReturningToHome ? 0 : 1,
-                        transition: isTransitioning && isSelected ? 'none' : 'opacity 0.3s ease',
+                        transition: 'none',
                         position: 'relative',
                         zIndex: 1
                     }}

@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { LayoutGroup, motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import ProjectItem from './ProjectItem';
 import CaseStudy from './CaseStudy';
 import { projectsData } from '../data/projects';
 
 function Projects({ viewState, selectedProject, onProjectSelect, isTransitioning, isReturningToHome, layoutGroupKey }) {
+    const navigate = useNavigate();
     const [hoveredItem, setHoveredItem] = useState(null);
     const [activeGridItem, setActiveGridItem] = useState(null);
     const [enableTransitions, setEnableTransitions] = useState(false);
@@ -89,7 +91,7 @@ function Projects({ viewState, selectedProject, onProjectSelect, isTransitioning
             if (hoveredItem !== null && hoveredItem !== index) {
                 classes.push('fade-text');
             }
-            if (activeGridItem === index) {
+            if (activeGridItem === index || selectedProject === project.id) {
                 classes.push('active');
             }
         } else if (viewState === 'CASE_STUDY') {
@@ -149,17 +151,32 @@ function Projects({ viewState, selectedProject, onProjectSelect, isTransitioning
                     />
                 ))}
                 {selectedProjectData && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: (isTransitioning || isReturningToHome) ? 0 : 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 1, ease: [0.43, 0.13, 0.23, 0.96] }}
-                        style={{
-                            willChange: (isTransitioning || isReturningToHome) ? 'opacity' : 'auto'
-                        }}
-                    >
-                        <CaseStudy project={selectedProjectData} />
-                    </motion.div>
+                    <>
+                        <motion.button
+                            className="back-button"
+                            onClick={() => navigate('/')}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: (isTransitioning || isReturningToHome) ? 0 : 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 1, ease: [0.43, 0.13, 0.23, 0.96] }}
+                        >
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                            Back to Projects
+                        </motion.button>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: (isTransitioning || isReturningToHome) ? 0 : 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 1, ease: [0.43, 0.13, 0.23, 0.96] }}
+                            style={{
+                                willChange: (isTransitioning || isReturningToHome) ? 'opacity' : 'auto'
+                            }}
+                        >
+                            <CaseStudy project={selectedProjectData} />
+                        </motion.div>
+                    </>
                 )}
             </div>
         </LayoutGroup>

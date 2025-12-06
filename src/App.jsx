@@ -55,6 +55,9 @@ function App() {
                 setSelectedProject(project.id);
                 setIsReturningToHome(false);
 
+                // Scroll to top when navigating to a project page
+                window.scrollTo(0, 0);
+
                 if (viewState === 'GRID') {
                     // Transitioning from grid to case study
                     setViewState('CASE_STUDY');
