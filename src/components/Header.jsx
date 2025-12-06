@@ -1,9 +1,7 @@
-import { useState } from 'react';
+import { useCallback } from 'react';
 
 function Header({ isHidden }) {
-    const [copiedEmail, setCopiedEmail] = useState(false);
-
-    const handleCopyEmail = async () => {
+    const handleCopyEmail = useCallback(async () => {
         const email = 'contact@dykmat.com';
 
         try {
@@ -32,7 +30,7 @@ function Header({ isHidden }) {
         } catch (err) {
             console.error('Failed to copy email:', err);
         }
-    };
+    }, []);
 
     return (
         <header className={isHidden ? 'fade-out' : ''}>

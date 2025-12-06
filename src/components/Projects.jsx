@@ -1,27 +1,41 @@
-import { useState, useEffect, useRef } from 'react';
-import { LayoutGroup, AnimatePresence, motion } from 'framer-motion';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { LayoutGroup, motion } from 'framer-motion';
 import ProjectItem from './ProjectItem';
 import CaseStudy from './CaseStudy';
 import { projectsData } from '../data/projects';
 
-function Projects({ viewState, selectedProject, onProjectSelect, isTransitioning, layoutGroupKey }) {
+function Projects({ viewState, selectedProject, onProjectSelect, isTransitioning, isReturningToHome, layoutGroupKey }) {
     const [hoveredItem, setHoveredItem] = useState(null);
     const [activeGridItem, setActiveGridItem] = useState(null);
+    const [enableTransitions, setEnableTransitions] = useState(false);
     const projectsRef = useRef(null);
+    const isDesktop = useMemo(() => window.innerWidth > 1024, []);
 
     useEffect(() => {
         setActiveGridItem(null);
     }, [layoutGroupKey]);
 
-    const [enableTransitions, setEnableTransitions] = useState(false);
-
     useEffect(() => {
         if (viewState === 'GRID') {
+            // Always enable transitions in grid view (except when actively returning home)
+            // This ensures layoutIds are ready for smooth animations
+            if (isReturningToHome) {
+                setEnableTransitions(false);
+                // Enable transitions after return animation completes
+                const timer = setTimeout(() => {
+                    setEnableTransitions(true);
+                }, 1100); // Slightly after the 1000ms fade out
+                return () => clearTimeout(timer);
+            } else {
+                // Enable transitions immediately when in grid view
+                // This ensures layoutIds are set before any transition starts
+                setEnableTransitions(true);
+            }
+        } else {
+            // In case study mode, disable grid transitions but keep layout animations active
             setEnableTransitions(false);
-            const timer = setTimeout(() => setEnableTransitions(true), 100);
-            return () => clearTimeout(timer);
         }
-    }, [viewState]);
+    }, [viewState, isReturningToHome]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -36,20 +50,20 @@ function Projects({ viewState, selectedProject, onProjectSelect, isTransitioning
         };
     }, [viewState]);
 
-    const handleItemHover = (index) => {
-        if (window.innerWidth > 1024 && viewState === 'GRID') {
+    const handleItemHover = useCallback((index) => {
+        if (isDesktop && viewState === 'GRID') {
             setHoveredItem(index);
         }
-    };
+    }, [isDesktop, viewState]);
 
-    const handleItemLeave = () => {
+    const handleItemLeave = useCallback(() => {
         setHoveredItem(null);
-    };
+    }, []);
 
-    const handleItemClick = (index, projectId, e) => {
+    const handleItemClick = useCallback((index, projectId) => {
         if (viewState !== 'GRID') return;
 
-        if (window.innerWidth <= 1024) {
+        if (!isDesktop) {
             onProjectSelect(projectId);
             return;
         }
@@ -59,9 +73,9 @@ function Projects({ viewState, selectedProject, onProjectSelect, isTransitioning
         } else {
             setActiveGridItem(index);
         }
-    };
+    }, [viewState, isDesktop, activeGridItem, onProjectSelect]);
 
-    const getItemClasses = (index, project) => {
+    const getItemClasses = useCallback((index, project) => {
         const classes = ['project-item'];
 
         if (viewState === 'GRID') {
@@ -81,17 +95,13 @@ function Projects({ viewState, selectedProject, onProjectSelect, isTransitioning
         }
 
         return classes.join(' ');
-    };
+    }, [viewState, hoveredItem, activeGridItem, selectedProject]);
 
-    const getGridStyles = () => {
-        if (viewState === 'CASE_STUDY') return {};
+    const gridStyles = useMemo(() => {
+        if (viewState === 'CASE_STUDY' || activeGridItem === null) return {};
 
-        let targetIndex = activeGridItem;
-
-        if (targetIndex === null) return {};
-
-        const colIndex = targetIndex % 3;
-        const rowIndex = Math.floor(targetIndex / 3);
+        const colIndex = activeGridItem % 3;
+        const rowIndex = Math.floor(activeGridItem / 3);
 
         let gridTemplateColumns = '1fr 1fr 1fr';
         let gridTemplateRows = '1fr 1fr';
@@ -104,13 +114,17 @@ function Projects({ viewState, selectedProject, onProjectSelect, isTransitioning
         else if (rowIndex === 1) gridTemplateRows = '1fr 2fr';
 
         return { gridTemplateColumns, gridTemplateRows };
-    };
+    }, [viewState, activeGridItem]);
+
+    const selectedProjectData = useMemo(() => {
+        return viewState === 'CASE_STUDY' ? projectsData.find(p => p.id === selectedProject) : null;
+    }, [viewState, selectedProject]);
 
     return (
         <LayoutGroup id={`projects-${layoutGroupKey}`}>
             <div
                 className={`projects ${viewState === 'CASE_STUDY' ? 'case-study-mode' : ''} ${isTransitioning ? 'transitioning-mode' : ''} ${enableTransitions ? 'enable-transitions' : ''}`}
-                style={getGridStyles()}
+                style={gridStyles}
                 ref={projectsRef}
             >
                 {projectsData.map((project, index) => (
@@ -120,21 +134,25 @@ function Projects({ viewState, selectedProject, onProjectSelect, isTransitioning
                         className={getItemClasses(index, project)}
                         onMouseEnter={() => handleItemHover(index)}
                         onMouseLeave={handleItemLeave}
-                        onClick={(e) => handleItemClick(index, project.id, e)}
-                        isPlaying={hoveredItem === index || activeGridItem === index || selectedProject === project.id}
+                        onClick={() => handleItemClick(index, project.id)}
+                        isPlaying={(hoveredItem === index || activeGridItem === index || selectedProject === project.id) && !isReturningToHome}
                         isCaseStudy={viewState === 'CASE_STUDY'}
                         isSelected={selectedProject === project.id}
                         isTransitioning={isTransitioning}
+                        isReturningToHome={isReturningToHome}
                     />
                 ))}
-                {viewState === 'CASE_STUDY' && (
+                {selectedProjectData && (
                     <motion.div
                         initial={{ opacity: 0 }}
-                        animate={{ opacity: isTransitioning ? 0 : 1 }}
+                        animate={{ opacity: (isTransitioning || isReturningToHome) ? 0 : 1 }}
                         exit={{ opacity: 0 }}
-                        transition={{ duration: 1 }}
+                        transition={{ duration: 1, ease: [0.43, 0.13, 0.23, 0.96] }}
+                        style={{
+                            willChange: (isTransitioning || isReturningToHome) ? 'opacity' : 'auto'
+                        }}
                     >
-                        <CaseStudy project={projectsData.find(p => p.id === selectedProject)} />
+                        <CaseStudy project={selectedProjectData} />
                     </motion.div>
                 )}
             </div>

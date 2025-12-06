@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate, useLocation, matchPath } from 'react-router-dom';
 import Header from './components/Header';
 import Projects from './components/Projects';
@@ -9,9 +9,10 @@ import './App.css';
 
 function App() {
     const [headerHeight, setHeaderHeight] = useState(300);
-    const [viewState, setViewState] = useState('GRID'); // 'GRID', 'CASE_STUDY'
+    const [viewState, setViewState] = useState('GRID');
     const [selectedProject, setSelectedProject] = useState(null);
     const [isTransitioning, setIsTransitioning] = useState(false);
+    const [isReturningToHome, setIsReturningToHome] = useState(false);
     const [layoutGroupKey, setLayoutGroupKey] = useState(0);
 
     const navigate = useNavigate();
@@ -21,21 +22,25 @@ function App() {
         const updateHeaderHeight = () => {
             const header = document.querySelector('header');
             if (header) {
-                setHeaderHeight(header.offsetHeight);
+                const height = header.offsetHeight;
+                setHeaderHeight(height);
+                document.documentElement.style.setProperty('--header-height', `${height}px`);
             }
         };
 
         updateHeaderHeight();
+        const resizeObserver = new ResizeObserver(updateHeaderHeight);
+        const header = document.querySelector('header');
+        if (header) {
+            resizeObserver.observe(header);
+        }
         window.addEventListener('resize', updateHeaderHeight);
 
         return () => {
+            resizeObserver.disconnect();
             window.removeEventListener('resize', updateHeaderHeight);
         };
     }, []);
-
-    useEffect(() => {
-        document.documentElement.style.setProperty('--header-height', `${headerHeight}px`);
-    }, [headerHeight]);
 
     // Sync URL with State
     useEffect(() => {
@@ -44,50 +49,89 @@ function App() {
         if (match) {
             const slug = match.params.slug;
             const project = projectsData.find(p => p.slug === slug);
-            if (project) {
+            if (project && (selectedProject !== project.id || viewState === 'GRID')) {
+                const isSwitchingProjects = viewState === 'CASE_STUDY' && selectedProject !== project.id;
+                
                 setSelectedProject(project.id);
+                setIsReturningToHome(false);
+                
                 if (viewState === 'GRID') {
+                    // Transitioning from grid to case study
+                    // Keep isTransitioning true to allow layout animation to complete
                     setViewState('CASE_STUDY');
+                    // Wait for layout animation to complete (layout animations typically take ~1s)
+                    // Add a bit more time to ensure smooth transition
+                    setTimeout(() => {
+                        setIsTransitioning(false);
+                    }, 1500);
+                } else if (isSwitchingProjects) {
+                    // Switching between projects - need to reset and transition again
+                    setIsTransitioning(true);
+                    setTimeout(() => {
+                        setIsTransitioning(false);
+                    }, 1500);
+                } else {
+                    // Already on this project, just ensure transition is complete
                     setIsTransitioning(false);
                 }
             }
         } else if (location.pathname === '/') {
             if (viewState !== 'GRID') {
-                setViewState('GRID');
-                setSelectedProject(null);
-                setIsTransitioning(false);
-                setLayoutGroupKey(prev => prev + 1);
+                // First, fade out all content
+                setIsReturningToHome(true);
+                setIsTransitioning(true);
+                
+                // After fade out completes, reset to default state
+                setTimeout(() => {
+                    setViewState('GRID');
+                    setSelectedProject(null);
+                    setIsTransitioning(false);
+                    // DON'T increment layoutGroupKey - this breaks layoutId continuity
+                    // The layoutId needs to persist across LayoutGroups for smooth transitions
+                    // Reset returning state after a brief moment to ensure clean render
+                    setTimeout(() => {
+                        setIsReturningToHome(false);
+                    }, 100);
+                }, 1000);
             }
         }
-    }, [location.pathname]);
+    }, [location.pathname, viewState, selectedProject]);
 
-    const handleProjectSelect = (id) => {
+    const handleProjectSelect = useCallback((id) => {
         const project = projectsData.find(p => p.id === id);
         if (!project) return;
 
+        // If we're already transitioning, don't start a new transition
+        if (isTransitioning) return;
+
+        // Set selected project first to establish layoutId
         setSelectedProject(id);
-        setIsTransitioning(true);
-
-        // Wait for fade out animation before navigating
-        setTimeout(() => {
-            navigate(`/project/${project.slug}`);
-        }, 1000);
-    };
-
-    const handleBackToGrid = () => {
-        navigate('/');
-    };
+        setIsReturningToHome(false);
+        
+        // Use requestAnimationFrame to ensure layoutId is set before transition starts
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                setIsTransitioning(true);
+                
+                // Wait for fade out animation before navigating
+                setTimeout(() => {
+                    navigate(`/project/${project.slug}`);
+                }, 1000);
+            });
+        });
+    }, [navigate, isTransitioning]);
 
     return (
         <>
             <CustomCursor />
             <MobileNotification />
-            <Header isHidden={viewState !== 'GRID' || isTransitioning} />
+            <Header isHidden={viewState !== 'GRID' || isTransitioning || isReturningToHome} />
             <Projects
                 viewState={viewState}
                 selectedProject={selectedProject}
                 onProjectSelect={handleProjectSelect}
                 isTransitioning={isTransitioning}
+                isReturningToHome={isReturningToHome}
                 layoutGroupKey={layoutGroupKey}
             />
         </>
