@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef, useLayoutEffect } from 'react';
 import { useNavigate, useLocation, matchPath } from 'react-router-dom';
 import Header from './components/Header';
 import Projects from './components/Projects';
@@ -14,9 +14,21 @@ function App() {
     const [isTransitioning, setIsTransitioning] = useState(false);
     const [isReturningToHome, setIsReturningToHome] = useState(false);
     const [layoutGroupKey, setLayoutGroupKey] = useState(0);
+    const [isMobile, setIsMobile] = useState(false);
 
     const navigate = useNavigate();
     const location = useLocation();
+
+    // Mobile detection
+    useEffect(() => {
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth <= 1024);
+        };
+
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     useEffect(() => {
         const updateHeaderHeight = () => {
@@ -55,8 +67,8 @@ function App() {
                 setSelectedProject(project.id);
                 setIsReturningToHome(false);
 
-                // Scroll to top when navigating to a project page
-                window.scrollTo(0, 0);
+
+
 
                 if (viewState === 'GRID') {
                     // Transitioning from grid to case study
@@ -65,7 +77,7 @@ function App() {
                     // Wait for layout animation to complete
                     setTimeout(() => {
                         setIsTransitioning(false);
-                    }, 1500);
+                    }, isMobile ? 1000 : 1500); // Shorter timeout for mobile slide transition
                 } else if (isSwitchingProjects) {
                     // Switching between projects - trigger transition
                     setIsTransitioning(true);
@@ -95,7 +107,14 @@ function App() {
                 }, 1000);
             }
         }
-    }, [location.pathname, viewState, selectedProject]);
+    }, [location.pathname, viewState, selectedProject, isMobile]);
+
+    // Scroll to top when switching to case study view to ensure transition starts from correct position
+    useLayoutEffect(() => {
+        if (viewState === 'CASE_STUDY') {
+            window.scrollTo(0, 0);
+        }
+    }, [viewState, selectedProject]);
 
     const handleProjectSelect = useCallback((id) => {
         const project = projectsData.find(p => p.id === id);
@@ -114,12 +133,13 @@ function App() {
                 setIsTransitioning(true);
 
                 // Wait for fade out animation before navigating
+                // Faster navigation on mobile for snappier feel
                 setTimeout(() => {
                     navigate(`/projects/${project.slug}`);
-                }, 600);
+                }, isMobile ? 10 : 600);
             });
         });
-    }, [navigate, isTransitioning]);
+    }, [navigate, isTransitioning, isMobile]);
 
     return (
         <>
@@ -133,6 +153,7 @@ function App() {
                 isTransitioning={isTransitioning}
                 isReturningToHome={isReturningToHome}
                 layoutGroupKey={layoutGroupKey}
+                isMobile={isMobile}
             />
         </>
     );

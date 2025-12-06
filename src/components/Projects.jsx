@@ -5,22 +5,13 @@ import ProjectItem from './ProjectItem';
 import CaseStudy from './CaseStudy';
 import { projectsData } from '../data/projects';
 
-function Projects({ viewState, selectedProject, onProjectSelect, isTransitioning, isReturningToHome, layoutGroupKey }) {
+function Projects({ viewState, selectedProject, onProjectSelect, isTransitioning, isReturningToHome, layoutGroupKey, isMobile }) {
     const navigate = useNavigate();
     const [hoveredItem, setHoveredItem] = useState(null);
     const [activeGridItem, setActiveGridItem] = useState(null);
     const [enableTransitions, setEnableTransitions] = useState(false);
     const projectsRef = useRef(null);
-    const [isDesktop, setIsDesktop] = useState(window.innerWidth > 1024);
 
-    useEffect(() => {
-        const handleResize = () => {
-            setIsDesktop(window.innerWidth > 1024);
-        };
-
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
 
     useEffect(() => {
         // Reset active grid item when returning to grid view
@@ -68,10 +59,10 @@ function Projects({ viewState, selectedProject, onProjectSelect, isTransitioning
     }, [viewState]);
 
     const handleItemHover = useCallback((index) => {
-        if (isDesktop && viewState === 'GRID') {
+        if (!isMobile && viewState === 'GRID') {
             setHoveredItem(index);
         }
-    }, [isDesktop, viewState]);
+    }, [isMobile, viewState]);
 
     const handleItemLeave = useCallback(() => {
         setHoveredItem(null);
@@ -80,7 +71,7 @@ function Projects({ viewState, selectedProject, onProjectSelect, isTransitioning
     const handleItemClick = useCallback((index, projectId) => {
         if (viewState !== 'GRID') return;
 
-        if (!isDesktop) {
+        if (isMobile) {
             onProjectSelect(projectId);
             return;
         }
@@ -90,7 +81,7 @@ function Projects({ viewState, selectedProject, onProjectSelect, isTransitioning
         } else {
             setActiveGridItem(index);
         }
-    }, [viewState, isDesktop, activeGridItem, onProjectSelect]);
+    }, [viewState, isMobile, activeGridItem, onProjectSelect]);
 
     const getItemClasses = useCallback((index, project) => {
         const classes = ['project-item'];
@@ -146,7 +137,7 @@ function Projects({ viewState, selectedProject, onProjectSelect, isTransitioning
             >
                 {projectsData.map((project, index) => (
                     <ProjectItem
-                        key={`${project.id}-${layoutGroupKey}`}
+                        key={`${project.id}-${layoutGroupKey}${isMobile && viewState === 'CASE_STUDY' ? '-mobile-case' : ''}`}
                         project={project}
                         className={getItemClasses(index, project)}
                         onMouseEnter={() => handleItemHover(index)}
@@ -157,6 +148,7 @@ function Projects({ viewState, selectedProject, onProjectSelect, isTransitioning
                         isSelected={selectedProject === project.id}
                         isTransitioning={isTransitioning}
                         isReturningToHome={isReturningToHome}
+                        isMobile={isMobile}
                     />
                 ))}
                 {selectedProjectData && (
