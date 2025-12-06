@@ -116,7 +116,7 @@ function App() {
                 // Wait for fade out animation before navigating
                 setTimeout(() => {
                     navigate(`/project/${project.slug}`);
-                }, 1000);
+                }, 600);
             });
         });
     }, [navigate, isTransitioning]);

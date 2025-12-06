@@ -200,13 +200,12 @@ function ProjectItem({ project, className, onClick, onMouseEnter, onMouseLeave, 
                     src={project.video}
                     poster={project.image}
                     loop
-                    muted={!isCaseStudy}
+                    muted={!isCaseStudy || isTransitioning}
                     playsInline
                     preload="metadata"
                     className="project-video"
                     style={{
                         pointerEvents: isCaseStudy ? 'auto' : 'none',
-                        willChange: (isTransitioning || isReturningToHome) ? 'transform, opacity' : 'auto',
                         opacity: isReturningToHome ? 0 : 1,
                         transition: 'none',
                         position: 'relative',
